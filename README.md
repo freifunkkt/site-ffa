@@ -5,6 +5,12 @@ Check out this repository and execute `make`, i.e. like this:
     git clone https://github.com/tecff/site-ffa.git site
     cd site
     make
+    
+    ggf resourcen beschränken
+    
+    make --output-sync=resource V=s |& tee out.log
+    
+    
 
 ## Further Resources
 
