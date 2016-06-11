@@ -8,7 +8,7 @@ Check out this repository and execute `make`, i.e. like this:
     
     ggf resourcen beschränken
     
-    make --output-sync=resource V=s |& tee out.log
+    make --output-sync=recurse V=s |& tee out.log
     
     
 
