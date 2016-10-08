@@ -1,6 +1,6 @@
 GLUON_BUILD_DIR := gluon-build
-GLUON_GIT_URL := https://github.com/tecff/gluon.git
-GLUON_GIT_REF := v2016.1.5-tecff-2
+GLUON_GIT_URL := https://github.com/freifunk-gluon/gluon.git
+GLUON_GIT_REF := v2016.2
 
 SECRET_KEY_FILE ?= ${HOME}/.gluon-secret-key
 
@@ -14,6 +14,8 @@ GLUON_TARGETS ?= \
 	x86-generic \
 	x86-kvm_guest
 
+GLUON_ATH10K_MESH := 11s
+	
 GLUON_RELEASE := $(shell git describe --tags 2>/dev/null)
 ifneq (,$(shell git describe --exact-match --tags 2>/dev/null))
   GLUON_BRANCH := stable
