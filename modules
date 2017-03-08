@@ -1,7 +1,7 @@
 GLUON_SITE_FEEDS='ktgl ssidchanger'
 
 PACKAGES_KTGL_REPO=https://github.com/Freifunk-GL/gluon-packages.git
-PACKAGES_KTGL_COMMIT=d9a1e15fa13c706c76c5b09ca6b72954a9ab1367
+PACKAGES_KTGL_COMMIT=d72509b542254e03c78f203ce356b4dc6ef69b3c
 
 PACKAGES_SSIDCHANGER_REPO=https://github.com/ffac/gluon-ssid-changer.git
 PACKAGES_SSIDCHANGER_COMMIT=cc650fa8432c9f368e36cd60b7b1217b34d60c38
