@@ -118,7 +118,7 @@ PCI_PACKAGES_NET := \
 	kmod-tg3 \
 	kmod-tulip \
 	kmod-via-rhine \
-	kmod-r8168
+	kmod-8139too
 # broken
 #	kmod-ixgbe \
 #	kmod-r8139too \
