@@ -1,52 +1,67 @@
 GLUON_BUILD_DIR := gluon-build
 GLUON_GIT_URL := https://github.com/freifunk-gluon/gluon.git
-GLUON_GIT_REF := v2016.2.4
+GLUON_GIT_REF := v2021.1
 
+PATCH_DIR := ${GLUON_BUILD_DIR}/site/patches
 SECRET_KEY_FILE ?= ${HOME}/.gluon-secret-key
 
 GLUON_TARGETS ?= \
 	ar71xx-generic \
+	ar71xx-tiny \
 	ar71xx-nand \
 	brcm2708-bcm2708 \
 	brcm2708-bcm2709 \
 	mpc85xx-generic \
-	x86-64 \
+	mpc85cc-p1020 \
+	lantiq-xway \
+	lantiq-xrx200 \
+	ath79-generic \
+	ramips-mt7621 \
+	sunxi-cortexa7 \
 	x86-generic \
-	x86-kvm_guest
+	x86-geode \
+	x86-64 \
+	x86-legacy \
+	ipq40xx-generic \
+	ipq806x-generic \
+	ramips-mt7620 \
+	ramips-mt76x8 \
+	ramips-rt305x
 
-GLUON_ATH10K_MESH := 11s
-	
-GLUON_RELEASE := $(shell git describe --tags 2>/dev/null)
 ifneq (,$(shell git describe --exact-match --tags 2>/dev/null))
-  GLUON_BRANCH := stable
+	GLUON_BRANCH := stable
+	GLUON_RELEASE := $(shell git describe --tags 2>/dev/null)
 else
-  GLUON_BRANCH := experimental
+	GLUON_BRANCH := experimental
+	EXP_FALLBACK = $(shell date '+%Y%m%d%H')
+	BUILD_NUMBER ?= $(EXP_FALLBACK)
+	GLUON_RELEASE := $(shell git describe --tags | cut -d- -f1)~exp$(BUILD_NUMBER)
 endif
 
 JOBS ?= $(shell cat /proc/cpuinfo | grep processor | wc -l)
 
-GLUON_MAKEFLAGS := -C ${GLUON_BUILD_DIR} \
-			GLUON_RELEASE=${GLUON_RELEASE} \
-			GLUON_BRANCH=${GLUON_BRANCH}
+GLUON_MAKE := ${MAKE} -j ${JOBS} -C ${GLUON_BUILD_DIR} \
+	GLUON_RELEASE=${GLUON_RELEASE} \
+	GLUON_BRANCH=${GLUON_BRANCH}
 
 all: info
-	$(MAKE) manifest
+	${MAKE} manifest
 
 info:
 	@echo
 	@echo '#########################'
-	@echo '# TECFF Firmware build'
+	@echo '# FFMKT Firmware build'
 	@echo '# Building release ${GLUON_RELEASE} for branch ${GLUON_BRANCH}'
 	@echo
 
 build: gluon-prepare
-	+for target in ${GLUON_TARGETS}; do \
+	for target in ${GLUON_TARGETS}; do \
 		echo ""Building target $$target""; \
-		$(MAKE) ${GLUON_MAKEFLAGS} GLUON_TARGET="$$target"; \
+		${GLUON_MAKE} download all GLUON_TARGET="$$target"; \
 	done
 
 manifest: build
-	$(MAKE) ${GLUON_MAKEFLAGS} manifest
+	${GLUON_MAKE} manifest
 	mv ${GLUON_BUILD_DIR}/output .
 
 sign: manifest
@@ -56,19 +71,33 @@ ${GLUON_BUILD_DIR}:
 	git clone ${GLUON_GIT_URL} ${GLUON_BUILD_DIR}
 
 gluon-prepare: output-clean ${GLUON_BUILD_DIR}
-	(cd ${GLUON_BUILD_DIR} \
-	  && git remote set-url origin ${GLUON_GIT_URL} \
-	  && git fetch origin \
-	  && git checkout -q ${GLUON_GIT_REF})
+	cd ${GLUON_BUILD_DIR} \
+		&& git remote set-url origin ${GLUON_GIT_URL} \
+		&& git fetch origin \
+		&& rm -rf packages \
+		&& git checkout -q --force ${GLUON_GIT_REF} \
+		&& git clean -fd;
 	ln -sfT .. ${GLUON_BUILD_DIR}/site
-	$(MAKE) ${GLUON_MAKEFLAGS} update
+	make gluon-patch
+	${GLUON_MAKE} update
 
-target-clean:
-	+for target in ${GLUON_TARGETS}; do \
-		echo ""Cleaning target $$target ...""; \
-		(cd ${GLUON_BUILD_DIR} \
-		  && $(MAKE) target/linux/clean GLUON_TARGET="$$target") \
-	done
+gluon-patch:
+	echo "Applying Patches ..."
+	(cd ${GLUON_BUILD_DIR})
+			if [ `git branch --list patched` ]; then \
+				(git branch -D patched) \
+			fi
+	(cd ${GLUON_BUILD_DIR}; git checkout -B patching)
+	if [ -d "gluon-build/site/patches" -a "gluon-build/site/patches/*.patch" ]; then \
+		(cd ${GLUON_BUILD_DIR}; git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn --verbose site/patches/*.patch) || ( \
+			cd ${GLUON_BUILD_DIR}; \
+			git clean -fd; \
+			git checkout -B patched; \
+			git branch -D patching; \
+			exit 1 \
+		) \
+	fi
+	(cd ${GLUON_BUILD_DIR}; git branch -M patched)
 
 gluon-clean:
 	rm -rf ${GLUON_BUILD_DIR}

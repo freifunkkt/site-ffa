@@ -1,5 +1,7 @@
-# Freifunk Altdorf Firmware Changelog
+# Freifunk Kitzingen Firmware Changelog
 
+## v2021.0
+ - Updated to Gluon 2021.0
 ## v2016.1.5
  - Updated to Gluon 2016.1.5, includes 2016.1.4
    - Changes: https://gluon.readthedocs.org/en/v2016.1.4/releases/v2016.1.4.html
